@@ -19,9 +19,12 @@ public class ReservationDto {
     private String phoneNumber;
     private Integer vehicleId;
 
-    public ReservationDto(LocalDate reservationDate, String reservationEmail, Integer vehicleId) {
+
+    public ReservationDto(LocalDate reservationDate, String reservationEmail, LocalTime pickupTime, String phoneNumber, Integer vehicleId) {
         this.reservationDate = reservationDate;
         this.reservationEmail = reservationEmail;
+        this.pickupTime = pickupTime;
+        this.phoneNumber = phoneNumber;
         this.vehicleId = vehicleId;
     }
 }

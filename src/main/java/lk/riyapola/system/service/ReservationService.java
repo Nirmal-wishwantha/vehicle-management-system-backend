@@ -81,18 +81,21 @@ public class ReservationService {
         if (findReservation.isPresent()) {
             // Update the reservation details
             Reservation reservation = findReservation.get();
+
             reservation.setReservationDate(reservationDto.getReservationDate());
+            reservation.setPhoneNumber(reservationDto.getPhoneNumber());
+            reservation.setPickupTime(reservationDto.getPickupTime());
 
             reservation.setVehicleId(vehicleRepo.findById(reservationDto.getVehicleId())
                     .orElseThrow(() -> new IllegalArgumentException("Vehicle not found")));
 
-            // Save the updated reservation
             Reservation updatedReservation = reservationRepo.save(reservation);
 
-            // Return the updated ReservationDto
             return new ReservationDto(
                     updatedReservation.getReservationDate(),
                     updatedReservation.getReservationEmail(),
+                    updatedReservation.getPickupTime(),
+                    updatedReservation.getPhoneNumber(),
                     updatedReservation.getVehicleId().getId()
 
             );

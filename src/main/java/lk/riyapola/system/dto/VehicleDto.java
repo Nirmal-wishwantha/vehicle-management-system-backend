@@ -14,4 +14,6 @@ public class VehicleDto {
     String model;
     double price;
     String description;
+
+
 }
