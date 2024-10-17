@@ -22,7 +22,10 @@ public class Vehicle {
   private String description;
   private String imgPath;
 
-    @OneToMany(mappedBy = "vehicleId", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @OneToMany(mappedBy = "vehicleId", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Reservation> reservations;
+
+    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reservation> reservations;
 
     public Vehicle(Integer id, String brand, String model, double price, String description) {

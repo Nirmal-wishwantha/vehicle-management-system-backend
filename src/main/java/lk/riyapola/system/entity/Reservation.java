@@ -22,15 +22,24 @@ public class Reservation {
     private String phoneNumber;
     private LocalTime pickupTime;
 
-    // Many reservations can be associated with one user (ManyToOne)
+
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "user_id")
+//    private User userId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id") // Foreign key reference
-    private User userId;  // Assuming you have a User entity
+    private User user;  // Changed from userId to user
+
+
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "vehicle_id")
+//    private Vehicle vehicle;
 
     // Many reservations can be associated with one vehicle (ManyToOne)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id") // Foreign key reference
-    private Vehicle vehicleId;  // Assuming you have a Vehicle entity
+    private Vehicle vehicle;  // Changed from vehicleId to vehicle
 
     public Reservation(Integer id, LocalDate reservationDate, String reservationEmail, Integer id1, Integer id2) {
     }
