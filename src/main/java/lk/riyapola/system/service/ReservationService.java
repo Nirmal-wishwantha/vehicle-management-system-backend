@@ -8,7 +8,6 @@ import lk.riyapola.system.entity.Vehicle;
 import lk.riyapola.system.repo.ReservationRepo;
 import lk.riyapola.system.repo.UserRepo;
 import lk.riyapola.system.repo.VehicleRepo;
-import lk.riyapola.system.status.ReservationStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,47 +29,29 @@ public class ReservationService {
     @Autowired
     private VehicleRepo vehicleRepo;
 
-
-
     public ReservationResponseDto reserve(ReservationDto reservationDto, Integer vehicleId) {
 
-        // Retrieve the vehicle by ID
-        Vehicle vehicleFind = vehicleRepo.findById(vehicleId)
-                .orElseThrow(() -> new RuntimeException("Vehicle not found with ID: " + vehicleId));
 
-        Reservation existingReservation = reservationRepo.findByVehicleAndReservationDate( vehicleFind,reservationDto.getReservationDate());
+            Vehicle vehicle = vehicleRepo.findById(vehicleId)
+                    .orElseThrow(() -> new RuntimeException("Vehicle not found with ID: " + vehicleId));
 
-        if (existingReservation != null) {
-            // If the reservation exists, return a failure response
-            return new ReservationResponseDto(reservationDto.getReservationEmail(),
-                    reservationDto.getReservationDate(),
-                    "Reservation not successful: another reservation exists on this date for this vehicle!");
-        }
 
-        // Retrieve the user by email, or throw an exception if not found
-        User user = userRepo.getUserByEmail(reservationDto.getReservationEmail())
-                .orElseThrow(() -> new RuntimeException("User not found with email: " +
-                        reservationDto.getReservationEmail()));
+            User user = userRepo.getUserByEmail(reservationDto.getReservationEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found with email: " + reservationDto.getReservationEmail()));
 
-        // Create a new Reservation object and populate it with details
-        Reservation reservation = new Reservation();
-        reservation.setReservationDate(reservationDto.getReservationDate());
-        reservation.setReservationEmail(reservationDto.getReservationEmail());
-        reservation.setPhoneNumber(reservationDto.getPhoneNumber());
-        reservation.setPickupTime(reservationDto.getPickupTime());
-        reservation.setUser(user);
-        reservation.setVehicle(vehicleFind);
-        reservation.setStatus(ReservationStatus.PENDING);
+            Reservation reservation = new Reservation();
+            reservation.setReservationDate(reservationDto.getReservationDate());
+            reservation.setReservationEmail(reservationDto.getReservationEmail());
+            reservation.setPhoneNumber(reservationDto.getPhoneNumber());
+            reservation.setPickupTime(reservationDto.getPickupTime());
+            reservation.setUserId(user);
+            reservation.setVehicleId(vehicle);
 
-        // Save the reservation to the database
-        Reservation savedReservation = reservationRepo.save(reservation);
+            Reservation savedReservation = reservationRepo.save(reservation);
 
-        // Return a success response with reservation details
-        return new ReservationResponseDto(savedReservation.getReservationEmail(),
-                savedReservation.getReservationDate(),savedReservation.getStatus(), "Reservation successful!");
+            return new ReservationResponseDto(savedReservation.getReservationEmail(), savedReservation.getReservationDate(), "Reservation successful!");
+
     }
-
-
 
     public List<ReservationDto> getReservation() {
         List<Reservation> all = reservationRepo.findAll();
@@ -78,7 +59,7 @@ public class ReservationService {
 
         for (Reservation reservation : all) {
             allReservation.add(new ReservationDto(reservation.getId(),reservation.getReservationDate(),reservation.getReservationEmail(),
-                    reservation.getPickupTime(),reservation.getPhoneNumber(),reservation.getVehicle().getId()));
+                    reservation.getPickupTime(),reservation.getPhoneNumber(),reservation.getVehicleId().getId()));
         }
         return allReservation;
     }
@@ -95,8 +76,6 @@ public class ReservationService {
 
     public ReservationDto updateReservation(ReservationDto reservationDto, Integer reservationId) {
         // Retrieve the existing reservation by ID
-
-
         Optional<Reservation> findReservation = reservationRepo.findById(reservationId);
 
         if (findReservation.isPresent()) {
@@ -107,7 +86,7 @@ public class ReservationService {
             reservation.setPhoneNumber(reservationDto.getPhoneNumber());
             reservation.setPickupTime(reservationDto.getPickupTime());
 
-            reservation.setVehicle(vehicleRepo.findById(reservationDto.getVehicleId())
+            reservation.setVehicleId(vehicleRepo.findById(reservationDto.getVehicleId())
                     .orElseThrow(() -> new IllegalArgumentException("Vehicle not found")));
 
             Reservation updatedReservation = reservationRepo.save(reservation);
@@ -117,7 +96,7 @@ public class ReservationService {
                     updatedReservation.getReservationEmail(),
                     updatedReservation.getPickupTime(),
                     updatedReservation.getPhoneNumber(),
-                    updatedReservation.getVehicle().getId()
+                    updatedReservation.getVehicleId().getId()
 
             );
         }
