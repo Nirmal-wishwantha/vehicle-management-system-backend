@@ -71,7 +71,7 @@ public class VehicleService {
 
         for (Vehicle vehicle : all) {
             allVehical.add(new VehicleDto(vehicle.getId(),vehicle.getBrand(),vehicle.getModel(),vehicle.getPrice(),
-                    vehicle.getDescription()));
+                    vehicle.getDescription(),vehicle.getImgPath()));
         }
         return allVehical;
     }

@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface ReservationRepo extends JpaRepository<Reservation, Integer> {
 
-//    Reservation findById(int id);
+    List<Reservation> findByUserId(int userId);
 
 
     List<Reservation> findByStatus(ReservationStatus status);
