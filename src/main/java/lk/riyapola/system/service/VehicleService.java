@@ -24,7 +24,8 @@ public class VehicleService {
 
 
     public VehicleDto vehicalSave(VehicleDto vehicleDto){
-        Vehicle save = vehicleRepo.save(new Vehicle(vehicleDto.getId(), vehicleDto.getBrand(), vehicleDto.getModel(),vehicleDto.getPrice(), vehicleDto.getDescription()));
+        Vehicle save = vehicleRepo.save(new Vehicle(vehicleDto.getId(), vehicleDto.getBrand(),
+                vehicleDto.getModel(),vehicleDto.getPrice(), vehicleDto.getDescription()));
         return new VehicleDto(save.getId(),save.getBrand(),save.getModel(), save.getPrice(),save.getDescription());
     }
 
@@ -52,7 +53,8 @@ public class VehicleService {
 
             Vehicle updatedVehicle = vehicleRepo.save(updateVehicle);
 
-            return new VehicleDto(updatedVehicle.getId(), updatedVehicle.getBrand(), updatedVehicle.getModel(),updatedVehicle.getPrice(), updatedVehicle.getDescription());
+            return new VehicleDto(updatedVehicle.getId(), updatedVehicle.getBrand(), updatedVehicle.getModel()
+                    ,updatedVehicle.getPrice(), updatedVehicle.getDescription());
         }
 
         return null;
@@ -64,8 +66,12 @@ public class VehicleService {
         List<Vehicle> all = vehicleRepo.findAll();
         List<VehicleDto> allVehical = new ArrayList<>();
 
+
+
+
         for (Vehicle vehicle : all) {
-            allVehical.add(new VehicleDto(vehicle.getId(),vehicle.getBrand(),vehicle.getModel(),vehicle.getPrice(),vehicle.getDescription()));
+            allVehical.add(new VehicleDto(vehicle.getId(),vehicle.getBrand(),vehicle.getModel(),vehicle.getPrice(),
+                    vehicle.getDescription()));
         }
         return allVehical;
     }
@@ -101,21 +107,19 @@ public class VehicleService {
         Vehicle vehicle = vehicleRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Vehicle not found with id: " + id));
 
-        // Get the stored image URL
         String imgUrl = vehicle.getImgPath();
+        System.out.println("image url :" + imgUrl);
 
-        // Extract the file name from the URL
         String fileName = imgUrl.substring(imgUrl.lastIndexOf("/") + 1);
+        System.out.println("file name :"+fileName);
 
-        // Define the path where the image is stored on the server (local path, not URL)
         Path imgPath = Paths.get("upload/", fileName);
+        System.out.println("image path :"+ imgPath);
 
-        // Check if the file exists
         if (!Files.exists(imgPath)) {
             throw new FileNotFoundException("Image not found for vehicle id: " + id);
         }
 
-        // Read and return the file's bytes
         return Files.readAllBytes(imgPath);
     }
 

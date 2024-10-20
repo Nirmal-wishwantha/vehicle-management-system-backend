@@ -1,6 +1,7 @@
 package lk.riyapola.system.entity;
 
 import jakarta.persistence.*;
+import lk.riyapola.system.status.ReservationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,12 +26,15 @@ public class Reservation {
     // Many reservations can be associated with one user (ManyToOne)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id") // Foreign key reference
-    private User userId;  // Assuming you have a User entity
+    private User user;  // Assuming you have a User entity
 
     // Many reservations can be associated with one vehicle (ManyToOne)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id") // Foreign key reference
-    private Vehicle vehicleId;  // Assuming you have a Vehicle entity
+    private Vehicle vehicle;  // Assuming you have a Vehicle entity
+
+    @Enumerated(EnumType.STRING)
+    private ReservationStatus status = ReservationStatus.PENDING;
 
     public Reservation(Integer id, LocalDate reservationDate, String reservationEmail, Integer id1, Integer id2) {
     }

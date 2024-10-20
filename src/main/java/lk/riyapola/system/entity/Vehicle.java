@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,9 +22,11 @@ public class Vehicle {
   private String description;
   private String imgPath;
 
-    @OneToMany(mappedBy = "vehicleId", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Reservation> reservations;
+//    @OneToMany(mappedBy = "vehicleId", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Reservation> reservations;
 
+    @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Reservation> reservations;
 
     public Vehicle(Integer id, String brand, String model, double price, String description) {
         this.id = id;
@@ -33,8 +34,5 @@ public class Vehicle {
         this.model = model;
         this.price = price;
         this.description = description;
-    }
-
-    public void getImgPaths(String fileUrl) {
     }
 }

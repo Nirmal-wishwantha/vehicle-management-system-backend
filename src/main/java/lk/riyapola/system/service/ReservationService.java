@@ -8,10 +8,10 @@ import lk.riyapola.system.entity.Vehicle;
 import lk.riyapola.system.repo.ReservationRepo;
 import lk.riyapola.system.repo.UserRepo;
 import lk.riyapola.system.repo.VehicleRepo;
+import lk.riyapola.system.status.ReservationStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,38 +31,89 @@ public class ReservationService {
 
     public ReservationResponseDto reserve(ReservationDto reservationDto, Integer vehicleId) {
 
+        Vehicle vehicleFind = vehicleRepo.findById(vehicleId)
+                .orElseThrow(() -> new RuntimeException("Vehicle not found with ID: " + vehicleId));
 
-            Vehicle vehicle = vehicleRepo.findById(vehicleId)
-                    .orElseThrow(() -> new RuntimeException("Vehicle not found with ID: " + vehicleId));
+        Reservation existingReservation = reservationRepo.findByVehicleAndReservationDate( vehicleFind,reservationDto.getReservationDate());
+
+        if (existingReservation != null) {
+            return new ReservationResponseDto(reservationDto.getReservationEmail(),
+                    reservationDto.getReservationDate(),
+                    "Reservation not successful: another reservation exists on this date for this vehicle!");
+        }
+
+        User user = userRepo.getUserByEmail(reservationDto.getReservationEmail())
+                .orElseThrow(() -> new RuntimeException("User not found with email: " +
+                        reservationDto.getReservationEmail()));
+
+        Reservation reservation = new Reservation();
+        reservation.setReservationDate(reservationDto.getReservationDate());
+        reservation.setReservationEmail(reservationDto.getReservationEmail());
+        reservation.setPhoneNumber(reservationDto.getPhoneNumber());
+        reservation.setPickupTime(reservationDto.getPickupTime());
+        reservation.setUser(user);
+        reservation.setVehicle(vehicleFind);
+        reservation.setStatus(ReservationStatus.PENDING);
+
+        Reservation savedReservation = reservationRepo.save(reservation);
+
+        return new ReservationResponseDto(savedReservation.getReservationEmail(),
+                savedReservation.getReservationDate(),savedReservation.getStatus(), "Reservation successful!");
+    }
 
 
-            User user = userRepo.getUserByEmail(reservationDto.getReservationEmail())
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + reservationDto.getReservationEmail()));
 
-            Reservation reservation = new Reservation();
-            reservation.setReservationDate(reservationDto.getReservationDate());
-            reservation.setReservationEmail(reservationDto.getReservationEmail());
-            reservation.setPhoneNumber(reservationDto.getPhoneNumber());
-            reservation.setPickupTime(reservationDto.getPickupTime());
-            reservation.setUserId(user);
-            reservation.setVehicleId(vehicle);
+    public ReservationResponseDto updateReservation(ReservationDto reservationDto, Integer reservationId) {
 
-            Reservation savedReservation = reservationRepo.save(reservation);
+        Optional<Reservation> findReservation = reservationRepo.findById(reservationId);
 
-            return new ReservationResponseDto(savedReservation.getReservationEmail(), savedReservation.getReservationDate(), "Reservation successful!");
+        Vehicle vehicle = vehicleRepo.findById(reservationDto.getVehicleId()).orElseThrow(() -> new RuntimeException
+                ("Vehicle not found with ID: " + reservationId));
+
+        Reservation VehicleAndReservationDate = reservationRepo.findByVehicleAndReservationDate(vehicle, reservationDto.getReservationDate());
+
+        if (VehicleAndReservationDate != null) {
+            return new ReservationResponseDto(reservationDto.getReservationEmail(),
+                    reservationDto.getReservationDate(),
+                    "Reservation not successful: another reservation exists on this date for this vehicle!");
+        }
+
+        if (findReservation.isPresent()) {
+            Reservation updateReservation = findReservation.get();
+            updateReservation.setReservationDate(reservationDto.getReservationDate());
+            updateReservation.setPickupTime(reservationDto.getPickupTime());
+            updateReservation.setPhoneNumber(reservationDto.getPhoneNumber());
+            updateReservation.setVehicle(vehicle);
+            updateReservation.setStatus(findReservation.get().getStatus());
+
+
+            Reservation savedReservation = reservationRepo.save(updateReservation);
+            return new ReservationResponseDto(savedReservation.getReservationEmail(),savedReservation.getReservationDate(),
+                    savedReservation.getStatus(), "Reservation Update successful!");
+        }
+        return new ReservationResponseDto(findReservation.get().getReservationEmail(),findReservation.get().getReservationDate(),"" +
+        "Reservation not successful!");
 
     }
 
+
+
     public List<ReservationDto> getReservation() {
-        List<Reservation> all = reservationRepo.findAll();
+//        List<Reservation> all = reservationRepo.findAll();
+
         List<ReservationDto> allReservation = new ArrayList<>();
 
-        for (Reservation reservation : all) {
+        List<Reservation> pendingReservation = reservationRepo.findByStatus(ReservationStatus.PENDING);
+
+
+        for (Reservation reservation : pendingReservation) {
             allReservation.add(new ReservationDto(reservation.getId(),reservation.getReservationDate(),reservation.getReservationEmail(),
-                    reservation.getPickupTime(),reservation.getPhoneNumber(),reservation.getVehicleId().getId()));
+                    reservation.getPickupTime(),reservation.getPhoneNumber(),reservation.getVehicle().getId(),
+                    reservation.getStatus()));
         }
         return allReservation;
     }
+
 
     public boolean deleteReservation(Integer reservationId) {
         if (reservationRepo.existsById(reservationId)) {
@@ -71,39 +122,5 @@ public class ReservationService {
         }
         return false;
     }
-
-
-
-    public ReservationDto updateReservation(ReservationDto reservationDto, Integer reservationId) {
-        // Retrieve the existing reservation by ID
-        Optional<Reservation> findReservation = reservationRepo.findById(reservationId);
-
-        if (findReservation.isPresent()) {
-            // Update the reservation details
-            Reservation reservation = findReservation.get();
-
-            reservation.setReservationDate(reservationDto.getReservationDate());
-            reservation.setPhoneNumber(reservationDto.getPhoneNumber());
-            reservation.setPickupTime(reservationDto.getPickupTime());
-
-            reservation.setVehicleId(vehicleRepo.findById(reservationDto.getVehicleId())
-                    .orElseThrow(() -> new IllegalArgumentException("Vehicle not found")));
-
-            Reservation updatedReservation = reservationRepo.save(reservation);
-
-            return new ReservationDto(
-                    updatedReservation.getReservationDate(),
-                    updatedReservation.getReservationEmail(),
-                    updatedReservation.getPickupTime(),
-                    updatedReservation.getPhoneNumber(),
-                    updatedReservation.getVehicleId().getId()
-
-            );
-        }
-        return null;
-    }
-
-
-
 
 }
