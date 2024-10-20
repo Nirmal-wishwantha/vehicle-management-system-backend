@@ -99,12 +99,17 @@ public class ReservationService {
 
 
     public List<ReservationDto> getReservation() {
-        List<Reservation> all = reservationRepo.findAll();
+//        List<Reservation> all = reservationRepo.findAll();
+
         List<ReservationDto> allReservation = new ArrayList<>();
 
-        for (Reservation reservation : all) {
+        List<Reservation> pendingReservation = reservationRepo.findByStatus(ReservationStatus.PENDING);
+
+
+        for (Reservation reservation : pendingReservation) {
             allReservation.add(new ReservationDto(reservation.getId(),reservation.getReservationDate(),reservation.getReservationEmail(),
-                    reservation.getPickupTime(),reservation.getPhoneNumber(),reservation.getVehicle().getId()));
+                    reservation.getPickupTime(),reservation.getPhoneNumber(),reservation.getVehicle().getId(),
+                    reservation.getStatus()));
         }
         return allReservation;
     }
