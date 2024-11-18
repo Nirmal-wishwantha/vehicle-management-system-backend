@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -74,19 +75,43 @@ public class VehicleController {
 
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
     @GetMapping("/get/image/{id}")
     public ResponseEntity<byte[]> getImage(@PathVariable Integer id) throws IOException {
-        // Call the service to get the image bytes
-        byte[] image = vehicleService.getImage(id);
 
-        // Determine the file type (assume it's JPEG for this example)
-        Optional<Vehicle> vehicle = vehicleRepo.findById(id);
+        Optional<Vehicle> vehicleOpt = vehicleRepo.findById(id);
+        if (!vehicleOpt.isPresent()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
 
+        Vehicle vehicle = vehicleOpt.get();
+        String imgUrl = vehicle.getImgPath();
 
-        String imgUrl = vehicle.get().getImgPath();
         String fileExtension = getFileExtension(imgUrl);
+        if (fileExtension == null || fileExtension.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Invalid image URL or extension
+        }
 
-        // Set appropriate content type based on the file extension
+        byte[] image;
+        try {
+            image = vehicleService.getImage(id);
+        } catch (FileNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND); // Image file not found
+        } catch (IOException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR); // Error reading the file
+        }
+
         MediaType mediaType = getMediaTypeForFileExtension(fileExtension);
 
         HttpHeaders headers = new HttpHeaders();
@@ -95,12 +120,13 @@ public class VehicleController {
         return new ResponseEntity<>(image, headers, HttpStatus.OK);
     }
 
-    // Helper method to extract the file extension from the URL
     private String getFileExtension(String url) {
+        if (url == null || !url.contains(".")) {
+            return null;
+        }
         return url.substring(url.lastIndexOf(".") + 1);
     }
 
-    // Helper method to determine media type from file extension
     private MediaType getMediaTypeForFileExtension(String extension) {
         switch (extension.toLowerCase()) {
             case "png":
@@ -110,14 +136,20 @@ public class VehicleController {
             case "jpg":
             case "jpeg":
                 return MediaType.IMAGE_JPEG;
-                case "webp":
-                    return MediaType.valueOf("image/webp");
+            case "webp":
+                return MediaType.valueOf("image/webp");
             case "bmp":
                 return MediaType.valueOf("image/bmp");
             default:
-                return MediaType.APPLICATION_OCTET_STREAM; // Fallback for unknown types
+                return MediaType.APPLICATION_OCTET_STREAM;
         }
     }
+
+
+
+
+
+    
 
     @DeleteMapping("/delete/image/{id}")
     public String imageDelete(@PathVariable Integer id){
